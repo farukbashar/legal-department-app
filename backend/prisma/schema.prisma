@@ -1,0 +1,341 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Shared / cross-module ----------
+
+model User {
+  id            Int       @id @default(autoincrement())
+  fullName      String
+  email         String    @unique
+  passwordHash  String
+  role          String    // 'admin' | 'head_of_legal' | 'legal_officer' | 'counsel' | 'compliance_officer' | 'executive'
+  department    String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  contractsOwned      Contract[]        @relation("ContractOwner")
+  approvalsGiven      ContractApproval[]
+  documentsUploaded   Document[]
+  auditEntries        AuditLog[]
+  opinionRequestsMade LegalOpinionRequest[] @relation("OpinionRequester")
+  opinionsAssigned    LegalOpinionRequest[] @relation("OpinionAssignee")
+  opinionsDrafted     LegalOpinion[]        @relation("OpinionDrafter")
+  opinionsReviewed    LegalOpinion[]        @relation("OpinionReviewer")
+  litigationCasesOwned LitigationCase[]     @relation("CaseOwner")
+  mousOwned            Mou[]                @relation("MouOwner")
+  mouApprovalsGiven    MouApproval[]
+  boardResolutionsCreated BoardResolution[]  @relation("ResolutionCreator")
+  complianceObligationsOwned ComplianceObligation[] @relation("ObligationOfficer")
+  debtCasesOwned      DebtCase[]           @relation("DebtCaseOwner")
+  knowledgeItemsCreated KnowledgeItem[]    @relation("KnowledgeItemCreator")
+
+  @@map("users")
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  entityType  String   // 'contract' | 'legal_opinion' | 'mou' | etc.
+  entityId    Int
+  fileName    String
+  fileUrl     String
+  version     Int      @default(1)
+  uploadedBy  Int?
+  uploader    User?    @relation(fields: [uploadedBy], references: [id])
+  uploadedAt  DateTime @default(now())
+
+  @@map("documents")
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  entityType   String
+  entityId     Int
+  action       String
+  performedBy  Int?
+  performer    User?    @relation(fields: [performedBy], references: [id])
+  performedAt  DateTime @default(now())
+  notes        String?
+
+  @@map("audit_log")
+}
+
+model Reminder {
+  id          Int       @id @default(autoincrement())
+  entityType  String
+  entityId    Int
+  remindAt    DateTime
+  message     String?
+  isSent      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  @@map("reminders")
+}
+
+// ---------- Contract Management ----------
+
+model Contract {
+  id              Int       @id @default(autoincrement())
+  title           String
+  counterparty    String
+  department      String?
+  value           Decimal?  @db.Decimal(18, 2)
+  currency        String    @default("NGN")
+  startDate       DateTime
+  endDate         DateTime
+  status          String    @default("draft") // draft | pending_approval | active | expired | terminated
+  ownerId         Int?
+  owner           User?     @relation("ContractOwner", fields: [ownerId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  approvals       ContractApproval[]
+  signatures      ContractSignature[]
+
+  @@map("contracts")
+}
+
+model ContractApproval {
+  id          Int      @id @default(autoincrement())
+  contractId  Int
+  contract    Contract @relation(fields: [contractId], references: [id])
+  approverId  Int?
+  approver    User?    @relation(fields: [approverId], references: [id])
+  step        Int      // order in the approval chain
+  status      String   @default("pending") // pending | approved | rejected
+  comments    String?
+  decidedAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@map("contract_approvals")
+}
+
+model ContractSignature {
+  id          Int       @id @default(autoincrement())
+  contractId  Int
+  contract    Contract  @relation(fields: [contractId], references: [id])
+  signerName  String
+  signerEmail String
+  method      String    @default("digital") // digital | wet_ink
+  signedAt    DateTime?
+  status      String    @default("pending") // pending | signed | declined
+
+  @@map("contract_signatures")
+}
+
+// ---------- Legal Opinion Management ----------
+
+model LegalOpinionRequest {
+  id            Int       @id @default(autoincrement())
+  subject       String
+  description   String
+  priority      String    @default("medium") // low | medium | high | urgent
+  status        String    @default("submitted") // submitted | assigned | drafting | in_review | completed
+  requesterId   Int?
+  requester     User?     @relation("OpinionRequester", fields: [requesterId], references: [id])
+  assignedToId  Int?
+  assignedTo    User?     @relation("OpinionAssignee", fields: [assignedToId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  opinion       LegalOpinion?
+
+  @@map("legal_opinion_requests")
+}
+
+model LegalOpinion {
+  id              Int       @id @default(autoincrement())
+  requestId       Int       @unique
+  request         LegalOpinionRequest @relation(fields: [requestId], references: [id])
+  draftedById     Int?
+  draftedBy       User?     @relation("OpinionDrafter", fields: [draftedById], references: [id])
+  content         String
+  status          String    @default("draft") // draft | submitted_for_review | approved | rejected
+  reviewedById    Int?
+  reviewedBy      User?     @relation("OpinionReviewer", fields: [reviewedById], references: [id])
+  reviewComments  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("legal_opinions")
+}
+
+// ---------- Litigation Management ----------
+
+model LitigationCase {
+  id                Int       @id @default(autoincrement())
+  caseNumber        String
+  court             String
+  opposingParty     String
+  subjectMatter     String?
+  status            String    @default("open") // open | in_progress | settled | dismissed | judgment_entered | closed
+  financialExposure Decimal?  @db.Decimal(18, 2)
+  currency          String    @default("NGN")
+  ownerId           Int?
+  owner             User?     @relation("CaseOwner", fields: [ownerId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  hearings          Hearing[]
+  counsel           CaseCounsel[]
+  judgment          Judgment?
+
+  @@map("litigation_cases")
+}
+
+model Hearing {
+  id          Int            @id @default(autoincrement())
+  caseId      Int
+  case        LitigationCase @relation(fields: [caseId], references: [id])
+  hearingDate DateTime
+  purpose     String?
+  outcome     String?
+  createdAt   DateTime       @default(now())
+
+  @@map("hearings")
+}
+
+model CaseCounsel {
+  id           Int            @id @default(autoincrement())
+  caseId       Int
+  case         LitigationCase @relation(fields: [caseId], references: [id])
+  name         String
+  firm         String?
+  role         String         @default("lead") // lead | co_counsel | internal
+  contactEmail String?
+  createdAt    DateTime       @default(now())
+
+  @@map("case_counsel")
+}
+
+model Judgment {
+  id           Int            @id @default(autoincrement())
+  caseId       Int            @unique
+  case         LitigationCase @relation(fields: [caseId], references: [id])
+  outcome      String         // won | lost | settled | dismissed
+  amount       Decimal?       @db.Decimal(18, 2)
+  judgmentDate DateTime
+  notes        String?
+  createdAt    DateTime       @default(now())
+
+  @@map("judgments")
+}
+
+// ---------- MoU Management ----------
+
+model Mou {
+  id            Int       @id @default(autoincrement())
+  title         String
+  parties       String
+  purpose       String?
+  status        String    @default("draft") // draft | in_review | approved | active | renewed | expired | terminated
+  renewalDate   DateTime?
+  ownerId       Int?
+  owner         User?     @relation("MouOwner", fields: [ownerId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  approvals     MouApproval[]
+
+  @@map("mous")
+}
+
+model MouApproval {
+  id          Int       @id @default(autoincrement())
+  mouId       Int
+  mou         Mou       @relation(fields: [mouId], references: [id])
+  approverId  Int?
+  approver    User?     @relation(fields: [approverId], references: [id])
+  step        Int
+  status      String    @default("pending") // pending | approved | rejected
+  comments    String?
+  decidedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("mou_approvals")
+}
+
+// ---------- Board Resolution Archive ----------
+
+model BoardResolution {
+  id               Int       @id @default(autoincrement())
+  resolutionNumber String
+  title            String
+  summary          String?
+  resolutionDate   DateTime
+  createdById      Int?
+  createdBy        User?     @relation("ResolutionCreator", fields: [createdById], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("board_resolutions")
+}
+
+// ---------- Compliance Tracker ----------
+
+model ComplianceObligation {
+  id                  Int       @id @default(autoincrement())
+  regulation          String
+  description         String?
+  dueDate             DateTime
+  responsibleOfficerId Int?
+  responsibleOfficer  User?     @relation("ObligationOfficer", fields: [responsibleOfficerId], references: [id])
+  status              String    @default("pending") // pending | in_progress | compliant | overdue | non_compliant
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@map("compliance_obligations")
+}
+
+// ---------- Recovery & Debt Cases ----------
+
+model DebtCase {
+  id          Int       @id @default(autoincrement())
+  debtor      String
+  description String?
+  amountOwed  Decimal   @db.Decimal(18, 2)
+  currency    String    @default("NGN")
+  status      String    @default("outstanding") // outstanding | in_recovery | partially_recovered | recovered | written_off
+  ownerId     Int?
+  owner       User?     @relation("DebtCaseOwner", fields: [ownerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  payments    DebtPayment[]
+
+  @@map("debt_cases")
+}
+
+model DebtPayment {
+  id          Int      @id @default(autoincrement())
+  debtCaseId  Int
+  debtCase    DebtCase @relation(fields: [debtCaseId], references: [id])
+  amount      Decimal  @db.Decimal(18, 2)
+  paymentDate DateTime
+  method      String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@map("debt_payments")
+}
+
+// ---------- Legal Knowledge Base ----------
+
+model KnowledgeItem {
+  id          Int       @id @default(autoincrement())
+  type        String    // act | regulation | policy | precedent | template
+  title       String
+  content     String?
+  fileUrl     String?
+  createdById Int?
+  createdBy   User?     @relation("KnowledgeItemCreator", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("knowledge_items")
+}
