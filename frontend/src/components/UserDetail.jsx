@@ -14,6 +14,8 @@ export default function UserDetail({ userId, users, onBack, onChanged }) {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [department, setDepartment] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetDone, setResetDone] = useState(false);
 
   useEffect(() => {
     const found = users.find((u) => u.id === userId);
@@ -88,6 +90,37 @@ export default function UserDetail({ userId, users, onBack, onChanged }) {
         >
           {user.isActive ? 'Deactivate this user' : 'Reactivate this user'}
         </button>
+      </div>
+
+      <div className="bg-white border border-ink/15 rounded-sm p-6 mt-6">
+        <h2 className="text-xs font-mono uppercase tracking-widest text-brass mb-4">Reset password</h2>
+        <p className="text-sm text-ink-light mb-3">
+          Sets a new password for this user directly — no need for their old one. Share it with them securely.
+        </p>
+        {resetDone ? (
+          <p className="text-sm text-status-active">Password reset successfully.</p>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="New temporary password"
+              className="input"
+            />
+            <button
+              onClick={() =>
+                handleAction(async () => {
+                  await api.adminResetPassword(userId, newPassword);
+                  setNewPassword('');
+                  setResetDone(true);
+                })
+              }
+              className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5 whitespace-nowrap"
+            >
+              Reset
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

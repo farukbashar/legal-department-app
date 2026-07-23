@@ -66,4 +66,37 @@ async function updateUser(id, { role, department, isActive }) {
   return user;
 }
 
-module.exports = { register, login, listUsers, updateUser };
+// Self-service: a logged-in user changes their own password, proving they
+// know the current one.
+async function changePassword(userId, { currentPassword, newPassword }) {
+  const user = await prisma.user.findUnique({ where: { id: Number(userId) } });
+  if (!user) throw new Error('User not found');
+
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) throw new Error('Current password is incorrect');
+
+  if (!newPassword || newPassword.length < 6) {
+    throw new Error('New password must be at least 6 characters');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: Number(userId) }, data: { passwordHash } });
+  return { success: true };
+}
+
+// Admin-only: reset another user's password without knowing their old one
+// (e.g. they're locked out). No confirmation of the old password required.
+async function adminResetPassword(id, { newPassword }) {
+  if (!newPassword || newPassword.length < 6) {
+    throw new Error('New password must be at least 6 characters');
+  }
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  const user = await prisma.user.update({
+    where: { id: Number(id) },
+    data: { passwordHash },
+    select: { id: true, fullName: true, email: true },
+  });
+  return user;
+}
+
+module.exports = { register, login, listUsers, updateUser, changePassword, adminResetPassword };

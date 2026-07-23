@@ -4,12 +4,21 @@ import ContractList from './ContractList.jsx';
 import ContractDetail from './ContractDetail.jsx';
 import NewContractForm from './NewContractForm.jsx';
 
-export default function ContractsModule() {
+export default function ContractsModule({ jumpToId, onJumpHandled }) {
   const [view, setView] = useState('list'); // 'list' | 'detail' | 'new'
   const [selectedId, setSelectedId] = useState(null);
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ status: '', department: '' });
+
+  useEffect(() => {
+    if (jumpToId) {
+      setSelectedId(jumpToId);
+      setView('detail');
+      onJumpHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpToId]);
 
   const loadContracts = async () => {
     setLoading(true);

@@ -4,12 +4,21 @@ import MouList from './MouList.jsx';
 import NewMouForm from './NewMouForm.jsx';
 import MouDetail from './MouDetail.jsx';
 
-export default function MousModule() {
+export default function MousModule({ jumpToId, onJumpHandled }) {
   const [view, setView] = useState('list'); // 'list' | 'detail' | 'new'
   const [selectedId, setSelectedId] = useState(null);
   const [mous, setMous] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ status: '' });
+
+  useEffect(() => {
+    if (jumpToId) {
+      setSelectedId(jumpToId);
+      setView('detail');
+      onJumpHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpToId]);
 
   const loadMous = async () => {
     setLoading(true);

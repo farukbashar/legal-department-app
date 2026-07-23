@@ -4,13 +4,27 @@ import MetricCard from './MetricCard.jsx';
 
 export default function DashboardModule() {
   const [summary, setSummary] = useState(null);
+  const [reminders, setReminders] = useState([]);
   const [error, setError] = useState('');
 
   const load = async () => {
     setError('');
     try {
-      const data = await api.getDashboardSummary();
+      const [data, due] = await Promise.all([
+        api.getDashboardSummary(),
+        api.listReminders({ scope: 'due' }),
+      ]);
       setSummary(data);
+      setReminders(due);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleMarkSent = async (id) => {
+    try {
+      await api.markReminderSent(id);
+      setReminders((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       setError(err.message);
     }
@@ -63,6 +77,32 @@ export default function DashboardModule() {
           accent={complianceScore.score !== null && complianceScore.score < 80 ? '#8C3A2E' : '#2F5D3A'}
         />
       </div>
+
+      {reminders.length > 0 && (
+        <div className="bg-white border border-ink/15 rounded-sm p-5 mb-6">
+          <h2 className="text-xs font-mono uppercase tracking-widest text-brass mb-3">
+            Reminders needing attention <span className="text-ink-light/50 normal-case">({reminders.length})</span>
+          </h2>
+          <ul className="space-y-2">
+            {reminders.map((r) => (
+              <li key={r.id} className="flex items-center justify-between text-sm border-b border-ink/10 pb-2 last:border-0 last:pb-0">
+                <div>
+                  <span className="text-ink">{r.message}</span>
+                  <span className="text-xs text-ink-light/60 font-mono ml-2">
+                    due {new Date(r.remindAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleMarkSent(r.id)}
+                  className="text-xs px-2 py-1 border border-ink/20 rounded-sm hover:bg-ink/5 whitespace-nowrap"
+                >
+                  Mark handled
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white border border-ink/15 rounded-sm p-5">

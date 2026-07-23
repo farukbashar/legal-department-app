@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import StatusBadge from './StatusBadge.jsx';
 import LedgerStamps from './LedgerStamps.jsx';
+import FileUploadField from './FileUploadField.jsx';
 
 export default function ContractDetail({ contractId, onBack, onChanged }) {
   const [contract, setContract] = useState(null);
@@ -10,7 +11,6 @@ export default function ContractDetail({ contractId, onBack, onChanged }) {
   const [versions, setVersions] = useState([]);
   const [error, setError] = useState('');
   const [signerForm, setSignerForm] = useState({ signerName: '', signerEmail: '' });
-  const [versionForm, setVersionForm] = useState({ fileName: '', fileUrl: '' });
 
   const load = async () => {
     try {
@@ -167,30 +167,10 @@ export default function ContractDetail({ contractId, onBack, onChanged }) {
             </li>
           ))}
         </ul>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAction(() => api.uploadVersion(contractId, versionForm));
-            setVersionForm({ fileName: '', fileUrl: '' });
-          }}
-          className="flex gap-2"
-        >
-          <input
-            value={versionForm.fileName}
-            onChange={(e) => setVersionForm({ ...versionForm, fileName: e.target.value })}
-            placeholder="File name"
-            className="input"
-          />
-          <input
-            value={versionForm.fileUrl}
-            onChange={(e) => setVersionForm({ ...versionForm, fileUrl: e.target.value })}
-            placeholder="File URL"
-            className="input"
-          />
-          <button type="submit" className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5 whitespace-nowrap">
-            Upload
-          </button>
-        </form>
+        <FileUploadField
+          label="Upload a new version"
+          onUploaded={(fileName, fileUrl) => handleAction(() => api.uploadVersion(contractId, { fileName, fileUrl }))}
+        />
       </Section>
     </div>
   );

@@ -10,6 +10,8 @@ import {
   Landmark,
   BookOpen,
   Users as UsersIcon,
+  History,
+  KeyRound,
   LogOut,
 } from 'lucide-react';
 import { hasToken, clearToken, getCurrentUser } from './api.js';
@@ -24,6 +26,9 @@ import ComplianceModule from './components/ComplianceModule.jsx';
 import RecoveryModule from './components/RecoveryModule.jsx';
 import KnowledgeBaseModule from './components/KnowledgeBaseModule.jsx';
 import UsersModule from './components/UsersModule.jsx';
+import AuditLogModule from './components/AuditLogModule.jsx';
+import GlobalSearch from './components/GlobalSearch.jsx';
+import ChangePasswordModal from './components/ChangePasswordModal.jsx';
 
 const MODULES = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -40,6 +45,8 @@ const MODULES = [
 export default function App() {
   const [authed, setAuthed] = useState(hasToken());
   const [module, setModule] = useState('dashboard');
+  const [jumpTarget, setJumpTarget] = useState(null); // { module, id } | null
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const currentUser = getCurrentUser();
   const isAdmin = currentUser?.role === 'admin';
 
@@ -48,10 +55,21 @@ export default function App() {
   }
 
   const visibleModules = isAdmin
-    ? [...MODULES, { key: 'users', label: 'Users', icon: UsersIcon }]
+    ? [
+        ...MODULES,
+        { key: 'users', label: 'Users', icon: UsersIcon },
+        { key: 'audit-log', label: 'Activity log', icon: History },
+      ]
     : MODULES;
 
   const activeModule = visibleModules.find((m) => m.key === module);
+
+  const handleOpenSearchResult = (targetModule, id) => {
+    setModule(targetModule);
+    setJumpTarget({ module: targetModule, id });
+  };
+
+  const jumpToIdFor = (key) => (jumpTarget?.module === key ? jumpTarget.id : null);
 
   return (
     <div className="min-h-screen bg-paper flex">
@@ -95,6 +113,13 @@ export default function App() {
             </div>
           )}
           <button
+            onClick={() => setShowChangePassword(true)}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-sm text-sm font-medium text-ink-light hover:bg-paper hover:text-ink transition-colors"
+          >
+            <KeyRound size={17} strokeWidth={2} />
+            Change password
+          </button>
+          <button
             onClick={() => {
               clearToken();
               setAuthed(false);
@@ -117,23 +142,41 @@ export default function App() {
           />
         </div>
 
-        <header className="h-14 shrink-0 bg-white border-b border-ink/[0.06] flex items-center px-8 relative z-10">
+        <header className="h-14 shrink-0 bg-white border-b border-ink/[0.06] flex items-center justify-between px-8 relative z-10">
           <p className="text-sm font-medium text-ink-light">{activeModule?.label}</p>
+          <GlobalSearch onOpenResult={handleOpenSearchResult} />
         </header>
 
         <main className="flex-1 overflow-y-auto px-8 py-8 relative z-10">
           {module === 'dashboard' && <DashboardModule />}
-          {module === 'contracts' && <ContractsModule />}
-          {module === 'legal-opinions' && <LegalOpinionsModule />}
-          {module === 'litigation' && <LitigationModule />}
-          {module === 'mous' && <MousModule />}
-          {module === 'board-resolutions' && <BoardResolutionsModule />}
+          {module === 'contracts' && (
+            <ContractsModule jumpToId={jumpToIdFor('contracts')} onJumpHandled={() => setJumpTarget(null)} />
+          )}
+          {module === 'legal-opinions' && (
+            <LegalOpinionsModule jumpToId={jumpToIdFor('legal-opinions')} onJumpHandled={() => setJumpTarget(null)} />
+          )}
+          {module === 'litigation' && (
+            <LitigationModule jumpToId={jumpToIdFor('litigation')} onJumpHandled={() => setJumpTarget(null)} />
+          )}
+          {module === 'mous' && (
+            <MousModule jumpToId={jumpToIdFor('mous')} onJumpHandled={() => setJumpTarget(null)} />
+          )}
+          {module === 'board-resolutions' && (
+            <BoardResolutionsModule jumpToId={jumpToIdFor('board-resolutions')} onJumpHandled={() => setJumpTarget(null)} />
+          )}
           {module === 'compliance' && <ComplianceModule />}
-          {module === 'recovery' && <RecoveryModule />}
-          {module === 'knowledge-base' && <KnowledgeBaseModule />}
+          {module === 'recovery' && (
+            <RecoveryModule jumpToId={jumpToIdFor('recovery')} onJumpHandled={() => setJumpTarget(null)} />
+          )}
+          {module === 'knowledge-base' && (
+            <KnowledgeBaseModule jumpToId={jumpToIdFor('knowledge-base')} onJumpHandled={() => setJumpTarget(null)} />
+          )}
           {module === 'users' && isAdmin && <UsersModule />}
+          {module === 'audit-log' && isAdmin && <AuditLogModule />}
         </main>
       </div>
+
+      {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
     </div>
   );
 }

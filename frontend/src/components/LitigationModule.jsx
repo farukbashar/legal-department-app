@@ -4,12 +4,21 @@ import CaseList from './CaseList.jsx';
 import NewCaseForm from './NewCaseForm.jsx';
 import CaseDetail from './CaseDetail.jsx';
 
-export default function LitigationModule() {
+export default function LitigationModule({ jumpToId, onJumpHandled }) {
   const [view, setView] = useState('list'); // 'list' | 'detail' | 'new'
   const [selectedId, setSelectedId] = useState(null);
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ status: '', court: '' });
+
+  useEffect(() => {
+    if (jumpToId) {
+      setSelectedId(jumpToId);
+      setView('detail');
+      onJumpHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpToId]);
 
   const loadCases = async () => {
     setLoading(true);

@@ -4,12 +4,21 @@ import KnowledgeItemList from './KnowledgeItemList.jsx';
 import NewKnowledgeItemForm from './NewKnowledgeItemForm.jsx';
 import KnowledgeItemDetail from './KnowledgeItemDetail.jsx';
 
-export default function KnowledgeBaseModule() {
+export default function KnowledgeBaseModule({ jumpToId, onJumpHandled }) {
   const [view, setView] = useState('list'); // 'list' | 'detail' | 'new'
   const [selectedId, setSelectedId] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ type: '', q: '' });
+
+  useEffect(() => {
+    if (jumpToId) {
+      setSelectedId(jumpToId);
+      setView('detail');
+      onJumpHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpToId]);
 
   const loadItems = async () => {
     setLoading(true);

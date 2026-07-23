@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import FileUploadField from './FileUploadField.jsx';
 
 const EMPTY = { type: 'policy', title: '', content: '', fileUrl: '' };
 
@@ -55,10 +56,11 @@ export default function NewKnowledgeItemForm({ onCancel, onCreate }) {
           <textarea value={form.content} onChange={update('content')} className="input min-h-[140px] font-serif" placeholder="Full text, summary, or notes" />
         </label>
 
-        <label className="block">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink-light/70 mb-1">File URL (optional)</span>
-          <input value={form.fileUrl} onChange={update('fileUrl')} className="input" placeholder="Link to the source document" />
-        </label>
+        <FileUploadField
+          label="Attach a file (optional)"
+          onUploaded={(fileName, fileUrl) => setForm({ ...form, fileUrl })}
+        />
+        {form.fileUrl && <p className="text-xs text-ink-light/60">A file is attached and will be saved with this item.</p>}
 
         <div className="flex gap-3 pt-2">
           <button type="submit" disabled={submitting} className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light disabled:opacity-50">

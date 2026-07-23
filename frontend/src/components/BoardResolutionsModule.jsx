@@ -4,12 +4,21 @@ import ResolutionList from './ResolutionList.jsx';
 import NewResolutionForm from './NewResolutionForm.jsx';
 import ResolutionDetail from './ResolutionDetail.jsx';
 
-export default function BoardResolutionsModule() {
+export default function BoardResolutionsModule({ jumpToId, onJumpHandled }) {
   const [view, setView] = useState('list'); // 'list' | 'detail' | 'new'
   const [selectedId, setSelectedId] = useState(null);
   const [resolutions, setResolutions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
+
+  useEffect(() => {
+    if (jumpToId) {
+      setSelectedId(jumpToId);
+      setView('detail');
+      onJumpHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpToId]);
 
   const loadResolutions = async () => {
     setLoading(true);

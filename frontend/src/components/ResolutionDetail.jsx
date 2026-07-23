@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import FileUploadField from './FileUploadField.jsx';
 
 export default function ResolutionDetail({ resolutionId, onBack }) {
   const [resolution, setResolution] = useState(null);
   const [docs, setDocs] = useState([]);
   const [error, setError] = useState('');
-  const [docForm, setDocForm] = useState({ fileName: '', fileUrl: '' });
 
   const load = async () => {
     try {
@@ -25,12 +25,10 @@ export default function ResolutionDetail({ resolutionId, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolutionId]);
 
-  const handleLink = async (e) => {
-    e.preventDefault();
+  const handleLink = async (fileName, fileUrl) => {
     setError('');
     try {
-      await api.linkResolutionDocument(resolutionId, docForm);
-      setDocForm({ fileName: '', fileUrl: '' });
+      await api.linkResolutionDocument(resolutionId, { fileName, fileUrl });
       await load();
     } catch (err) {
       setError(err.message);
@@ -70,30 +68,16 @@ export default function ResolutionDetail({ resolutionId, onBack }) {
           {docs.length === 0 && <p className="text-sm text-ink-light/60 italic">No documents linked yet.</p>}
           {docs.map((d) => (
             <li key={d.id} className="flex items-center justify-between text-sm border-b border-ink/10 pb-2 last:border-0">
-              <span className="font-medium text-ink">{d.fileName}</span>
+              <a href={d.fileUrl} target="_blank" rel="noreferrer" className="font-medium text-ink hover:text-brass">
+                {d.fileName}
+              </a>
               <span className="text-xs text-ink-light/60 font-mono">
                 {d.uploader?.fullName || 'unknown'} · {new Date(d.uploadedAt).toLocaleDateString()}
               </span>
             </li>
           ))}
         </ul>
-        <form onSubmit={handleLink} className="flex gap-2">
-          <input
-            value={docForm.fileName}
-            onChange={(e) => setDocForm({ ...docForm, fileName: e.target.value })}
-            placeholder="File name"
-            className="input"
-          />
-          <input
-            value={docForm.fileUrl}
-            onChange={(e) => setDocForm({ ...docForm, fileUrl: e.target.value })}
-            placeholder="File URL"
-            className="input"
-          />
-          <button type="submit" className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5 whitespace-nowrap">
-            Link
-          </button>
-        </form>
+        <FileUploadField label="Link a new document" onUploaded={handleLink} />
       </div>
     </div>
   );

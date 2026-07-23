@@ -174,6 +174,43 @@ export const api = {
   listUsers: () => request('/auth/users'),
   registerUser: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
   updateUser: (id, data) => request(`/auth/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Password management
+  changePassword: (currentPassword, newPassword) =>
+    request('/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword, newPassword }) }),
+  adminResetPassword: (userId, newPassword) =>
+    request(`/auth/users/${userId}/reset-password`, { method: 'POST', body: JSON.stringify({ newPassword }) }),
+
+  // Reminders
+  listReminders: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/reminders${qs ? `?${qs}` : ''}`);
+  },
+  markReminderSent: (id) => request(`/reminders/${id}/mark-sent`, { method: 'PUT' }),
+
+  // File uploads — multipart, so this bypasses the JSON `request` helper
+  uploadFile: async (file) => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${BASE_URL}/uploads`, {
+      method: 'POST',
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: formData,
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.error || `Upload failed (${res.status})`);
+    return data;
+  },
+
+  // Global search
+  globalSearch: (q) => request(`/search?q=${encodeURIComponent(q)}`),
+
+  // Audit log (admin only)
+  listAuditLog: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/audit-log${qs ? `?${qs}` : ''}`);
+  },
 };
 
 export function saveSession(token, user) {

@@ -42,4 +42,24 @@ router.put('/users/:id', requireAuth, requireRole('admin'), async (req, res) => 
   }
 });
 
+// POST /api/auth/change-password — self-service, requires the current password
+router.post('/change-password', requireAuth, async (req, res) => {
+  try {
+    const result = await authService.changePassword(req.user.id, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/auth/users/:id/reset-password — admin-only, no old password needed
+router.post('/users/:id/reset-password', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const result = await authService.adminResetPassword(req.params.id, req.body);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 module.exports = router;

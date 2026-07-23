@@ -5,12 +5,21 @@ import NewOpinionRequestForm from './NewOpinionRequestForm.jsx';
 import OpinionRequestDetail from './OpinionRequestDetail.jsx';
 import OpinionSearch from './OpinionSearch.jsx';
 
-export default function LegalOpinionsModule() {
+export default function LegalOpinionsModule({ jumpToId, onJumpHandled }) {
   const [view, setView] = useState('list'); // 'list' | 'detail' | 'new' | 'search'
   const [selectedId, setSelectedId] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ status: '', priority: '' });
+
+  useEffect(() => {
+    if (jumpToId) {
+      setSelectedId(jumpToId);
+      setView('detail');
+      onJumpHandled?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jumpToId]);
 
   const loadRequests = async () => {
     setLoading(true);
