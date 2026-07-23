@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api, saveToken } from '../api.js';
+import { api, saveSession } from '../api.js';
 
 export default function Login({ onLoggedIn }) {
   const [email, setEmail] = useState('');
@@ -12,8 +12,8 @@ export default function Login({ onLoggedIn }) {
     setError('');
     setSubmitting(true);
     try {
-      const { token } = await api.login(email, password);
-      saveToken(token);
+      const { token, user } = await api.login(email, password);
+      saveSession(token, user);
       onLoggedIn();
     } catch (err) {
       setError(err.message);

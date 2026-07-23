@@ -169,7 +169,22 @@ export const api = {
 
   // Executive Dashboard
   getDashboardSummary: () => request('/dashboard/summary'),
+
+  // Users (admin only)
+  listUsers: () => request('/auth/users'),
+  registerUser: (data) => request('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+  updateUser: (id, data) => request(`/auth/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 };
+
+export function saveSession(token, user) {
+  localStorage.setItem('legal_app_token', token);
+  localStorage.setItem('legal_app_user', JSON.stringify(user));
+}
+
+export function getCurrentUser() {
+  const raw = localStorage.getItem('legal_app_user');
+  return raw ? JSON.parse(raw) : null;
+}
 
 export function saveToken(token) {
   localStorage.setItem('legal_app_token', token);
@@ -177,6 +192,7 @@ export function saveToken(token) {
 
 export function clearToken() {
   localStorage.removeItem('legal_app_token');
+  localStorage.removeItem('legal_app_user');
 }
 
 export function hasToken() {

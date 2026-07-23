@@ -37,4 +37,33 @@ async function login({ email, password }) {
   return { token, user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role } };
 }
 
-module.exports = { register, login };
+async function listUsers() {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      fullName: true,
+      email: true,
+      role: true,
+      department: true,
+      isActive: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+  return users;
+}
+
+async function updateUser(id, { role, department, isActive }) {
+  const user = await prisma.user.update({
+    where: { id: Number(id) },
+    data: {
+      ...(role && { role }),
+      ...(department !== undefined && { department }),
+      ...(isActive !== undefined && { isActive }),
+    },
+    select: { id: true, fullName: true, email: true, role: true, department: true, isActive: true },
+  });
+  return user;
+}
+
+module.exports = { register, login, listUsers, updateUser };
