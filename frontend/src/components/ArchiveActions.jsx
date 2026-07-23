@@ -5,51 +5,77 @@ import { getCurrentUser } from '../api.js';
 // (admin-only, with a confirmation step) for permanently removing a record.
 export default function ArchiveActions({ isArchived, onArchive, onUnarchive, onDelete }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const isAdmin = getCurrentUser()?.role === 'admin';
 
+  const handleDelete = async () => {
+    setDeleteError('');
+    setDeleting(true);
+    try {
+      await onDelete();
+    } catch (err) {
+      setDeleteError(err.message || 'Delete failed.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <div className="flex items-center gap-2 mt-4">
-      {isArchived ? (
-        <button
-          onClick={onUnarchive}
-          className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5"
-        >
-          Unarchive
-        </button>
-      ) : (
-        <button
-          onClick={onArchive}
-          className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5"
-        >
-          Archive
-        </button>
-      )}
-
-      {isAdmin && !confirmingDelete && (
-        <button
-          onClick={() => setConfirmingDelete(true)}
-          className="text-sm font-medium px-3 py-2 rounded-sm border border-status-rejected/30 text-status-rejected hover:bg-status-rejected/5"
-        >
-          Delete permanently
-        </button>
-      )}
-
-      {isAdmin && confirmingDelete && (
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-status-rejected">Delete forever? This cannot be undone.</span>
+    <div className="mt-4">
+      <div className="flex items-center gap-2">
+        {isArchived ? (
           <button
-            onClick={onDelete}
-            className="text-sm font-medium px-3 py-2 rounded-sm bg-status-rejected text-white hover:opacity-90"
-          >
-            Yes, delete
-          </button>
-          <button
-            onClick={() => setConfirmingDelete(false)}
+            onClick={onUnarchive}
             className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5"
           >
-            Cancel
+            Unarchive
           </button>
-        </div>
+        ) : (
+          <button
+            onClick={onArchive}
+            className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5"
+          >
+            Archive
+          </button>
+        )}
+
+        {isAdmin && !confirmingDelete && (
+          <button
+            onClick={() => setConfirmingDelete(true)}
+            className="text-sm font-medium px-3 py-2 rounded-sm border border-status-rejected/30 text-status-rejected hover:bg-status-rejected/5"
+          >
+            Delete permanently
+          </button>
+        )}
+
+        {isAdmin && confirmingDelete && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-status-rejected">Delete forever? This cannot be undone.</span>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="text-sm font-medium px-3 py-2 rounded-sm bg-status-rejected text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {deleting ? 'Deleting…' : 'Yes, delete'}
+            </button>
+            <button
+              onClick={() => {
+                setConfirmingDelete(false);
+                setDeleteError('');
+              }}
+              className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
+
+      {deleteError && (
+        <p className="text-sm text-status-rejected bg-status-rejected/10 border border-status-rejected/30 rounded-sm px-3 py-2 mt-2">
+          {deleteError}
+        </p>
       )}
     </div>
   );
