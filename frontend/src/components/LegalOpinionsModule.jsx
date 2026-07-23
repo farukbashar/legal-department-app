@@ -10,7 +10,7 @@ export default function LegalOpinionsModule({ jumpToId, onJumpHandled }) {
   const [selectedId, setSelectedId] = useState(null);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ status: '', priority: '' });
+  const [filters, setFilters] = useState({ status: '', priority: '', archived: '' });
 
   useEffect(() => {
     if (jumpToId) {
@@ -27,6 +27,7 @@ export default function LegalOpinionsModule({ jumpToId, onJumpHandled }) {
       const data = await api.listOpinionRequests({
         ...(filters.status ? { status: filters.status } : {}),
         ...(filters.priority ? { priority: filters.priority } : {}),
+        ...(filters.archived ? { archived: filters.archived } : {}),
       });
       setRequests(data);
     } catch (err) {

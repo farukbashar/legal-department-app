@@ -91,6 +91,7 @@ model Contract {
   status          String    @default("draft") // draft | pending_approval | active | expired | terminated
   ownerId         Int?
   owner           User?     @relation("ContractOwner", fields: [ownerId], references: [id])
+  archivedAt      DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -140,6 +141,7 @@ model LegalOpinionRequest {
   requester     User?     @relation("OpinionRequester", fields: [requesterId], references: [id])
   assignedToId  Int?
   assignedTo    User?     @relation("OpinionAssignee", fields: [assignedToId], references: [id])
+  archivedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -178,6 +180,7 @@ model LitigationCase {
   currency          String    @default("NGN")
   ownerId           Int?
   owner             User?     @relation("CaseOwner", fields: [ownerId], references: [id])
+  archivedAt        DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -237,6 +240,7 @@ model Mou {
   renewalDate   DateTime?
   ownerId       Int?
   owner         User?     @relation("MouOwner", fields: [ownerId], references: [id])
+  archivedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -270,6 +274,7 @@ model BoardResolution {
   resolutionDate   DateTime
   createdById      Int?
   createdBy        User?     @relation("ResolutionCreator", fields: [createdById], references: [id])
+  archivedAt       DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -286,6 +291,7 @@ model ComplianceObligation {
   responsibleOfficerId Int?
   responsibleOfficer  User?     @relation("ObligationOfficer", fields: [responsibleOfficerId], references: [id])
   status              String    @default("pending") // pending | in_progress | compliant | overdue | non_compliant
+  archivedAt          DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -303,6 +309,7 @@ model DebtCase {
   status      String    @default("outstanding") // outstanding | in_recovery | partially_recovered | recovered | written_off
   ownerId     Int?
   owner       User?     @relation("DebtCaseOwner", fields: [ownerId], references: [id])
+  archivedAt  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -334,6 +341,7 @@ model KnowledgeItem {
   fileUrl     String?
   createdById Int?
   createdBy   User?     @relation("KnowledgeItemCreator", fields: [createdById], references: [id])
+  archivedAt  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import OpinionStatusBadge from './OpinionStatusBadge.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
 
 export default function OpinionRequestDetail({ requestId, onBack, onChanged }) {
   const [request, setRequest] = useState(null);
@@ -101,6 +102,17 @@ export default function OpinionRequestDetail({ requestId, onBack, onChanged }) {
             Start drafting
           </button>
         )}
+
+        <ArchiveActions
+          isArchived={Boolean(request.archivedAt)}
+          onArchive={() => handleAction(() => api.archiveOpinionRequest(requestId))}
+          onUnarchive={() => handleAction(() => api.unarchiveOpinionRequest(requestId))}
+          onDelete={async () => {
+            await api.deleteOpinionRequest(requestId);
+            onChanged?.();
+            onBack();
+          }}
+        />
       </div>
 
       {opinion && (

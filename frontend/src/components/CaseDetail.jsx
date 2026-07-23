@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import CaseStatusBadge from './CaseStatusBadge.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
 
 const STATUS_OPTIONS = ['open', 'in_progress', 'settled', 'dismissed', 'judgment_entered', 'closed'];
 
@@ -87,6 +88,17 @@ export default function CaseDetail({ caseId, onBack, onChanged }) {
           </div>
         </dl>
         {c.subjectMatter && <p className="text-sm text-ink-light mt-3">{c.subjectMatter}</p>}
+
+        <ArchiveActions
+          isArchived={Boolean(c.archivedAt)}
+          onArchive={() => handleAction(() => api.archiveCase(caseId))}
+          onUnarchive={() => handleAction(() => api.unarchiveCase(caseId))}
+          onDelete={async () => {
+            await api.deleteCase(caseId);
+            onChanged?.();
+            onBack();
+          }}
+        />
       </div>
 
       <div className="bg-white border border-ink/15 rounded-sm p-6 mb-6">

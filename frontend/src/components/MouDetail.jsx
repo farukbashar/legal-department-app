@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import MouStatusBadge from './MouStatusBadge.jsx';
 import LedgerStamps from './LedgerStamps.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
 
 export default function MouDetail({ mouId, onBack, onChanged }) {
   const [mou, setMou] = useState(null);
@@ -108,6 +109,17 @@ export default function MouDetail({ mouId, onBack, onChanged }) {
             </button>
           </form>
         )}
+
+        <ArchiveActions
+          isArchived={Boolean(mou.archivedAt)}
+          onArchive={() => handleAction(() => api.archiveMou(mouId))}
+          onUnarchive={() => handleAction(() => api.unarchiveMou(mouId))}
+          onDelete={async () => {
+            await api.deleteMou(mouId);
+            onChanged?.();
+            onBack();
+          }}
+        />
       </div>
 
       {approvals.length > 0 && (

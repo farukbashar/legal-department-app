@@ -9,7 +9,7 @@ export default function LitigationModule({ jumpToId, onJumpHandled }) {
   const [selectedId, setSelectedId] = useState(null);
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ status: '', court: '' });
+  const [filters, setFilters] = useState({ status: '', court: '', archived: '' });
 
   useEffect(() => {
     if (jumpToId) {
@@ -26,6 +26,7 @@ export default function LitigationModule({ jumpToId, onJumpHandled }) {
       const data = await api.listCases({
         ...(filters.status ? { status: filters.status } : {}),
         ...(filters.court ? { court: filters.court } : {}),
+        ...(filters.archived ? { archived: filters.archived } : {}),
       });
       setCases(data);
     } catch (err) {

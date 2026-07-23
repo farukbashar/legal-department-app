@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import KnowledgeTypeBadge from './KnowledgeTypeBadge.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
 
 export default function KnowledgeItemDetail({ itemId, onBack, onChanged }) {
   const [item, setItem] = useState(null);
@@ -28,6 +29,20 @@ export default function KnowledgeItemDetail({ itemId, onBack, onChanged }) {
     try {
       await api.updateKnowledgeItem(itemId, { content });
       setEditing(false);
+      await load();
+      onChanged?.();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleArchive = () => handleActionSimple(() => api.archiveKnowledgeItem(itemId));
+  const handleUnarchive = () => handleActionSimple(() => api.unarchiveKnowledgeItem(itemId));
+
+  const handleActionSimple = async (fn) => {
+    setError('');
+    try {
+      await fn();
       await load();
       onChanged?.();
     } catch (err) {
@@ -105,10 +120,13 @@ export default function KnowledgeItemDetail({ itemId, onBack, onChanged }) {
                 <button onClick={() => setEditing(true)} className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5">
                   Edit
                 </button>
-                <button onClick={handleDelete} className="text-sm font-medium px-3 py-2 rounded-sm border border-ink/20 hover:bg-ink/5">
-                  Delete
-                </button>
               </div>
+              <ArchiveActions
+                isArchived={Boolean(item.archivedAt)}
+                onArchive={handleArchive}
+                onUnarchive={handleUnarchive}
+                onDelete={handleDelete}
+              />
             </>
           )}
         </div>

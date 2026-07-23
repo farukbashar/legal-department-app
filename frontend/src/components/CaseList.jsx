@@ -1,6 +1,17 @@
 import CaseStatusBadge from './CaseStatusBadge.jsx';
+import ArchivedToggle from './ArchivedToggle.jsx';
+import ExportCSVButton from './ExportCSVButton.jsx';
 
 const STATUS_OPTIONS = ['', 'open', 'in_progress', 'settled', 'dismissed', 'judgment_entered', 'closed'];
+const CSV_COLUMNS = [
+  { key: 'id', label: 'ID' },
+  { key: 'caseNumber', label: 'Case number' },
+  { key: 'court', label: 'Court' },
+  { key: 'opposingParty', label: 'Opposing party' },
+  { key: 'status', label: 'Status' },
+  { key: 'currency', label: 'Currency' },
+  { key: 'financialExposure', label: 'Financial exposure' },
+];
 
 export default function CaseList({ cases, filters, onFilterChange, onSelect, onNew, loading }) {
   return (
@@ -12,15 +23,18 @@ export default function CaseList({ cases, filters, onFilterChange, onSelect, onN
           </p>
           <h1 className="text-2xl font-serif font-semibold text-ink">Litigation docket</h1>
         </div>
-        <button
-          onClick={onNew}
-          className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
-        >
-          + New case
-        </button>
+        <div className="flex gap-2">
+          <ExportCSVButton filename="litigation-cases" rows={cases} columns={CSV_COLUMNS} />
+          <button
+            onClick={onNew}
+            className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
+          >
+            + New case
+          </button>
+        </div>
       </div>
 
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-4 items-center">
         <select
           value={filters.status}
           onChange={(e) => onFilterChange({ ...filters, status: e.target.value })}
@@ -35,6 +49,10 @@ export default function CaseList({ cases, filters, onFilterChange, onSelect, onN
           onChange={(e) => onFilterChange({ ...filters, court: e.target.value })}
           placeholder="Filter by court"
           className="text-sm border border-ink/20 rounded-sm px-2 py-1.5 bg-white flex-1 max-w-xs"
+        />
+        <ArchivedToggle
+          checked={filters.archived === 'true'}
+          onChange={(checked) => onFilterChange({ ...filters, archived: checked ? 'true' : '' })}
         />
       </div>
 

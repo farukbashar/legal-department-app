@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import MetricCard from './MetricCard.jsx';
+import { exportReportPDF } from '../utils/pdf.js';
 
 export default function DashboardModule() {
   const [summary, setSummary] = useState(null);
@@ -47,6 +48,57 @@ export default function DashboardModule() {
     monthlyPerformance,
   } = summary;
 
+  const handleExportPDF = () => {
+    exportReportPDF({
+      title: 'Executive Dashboard',
+      subtitle: `REA Legal Department — generated ${new Date().toLocaleString()}`,
+      filename: 'executive-dashboard',
+      sections: [
+        {
+          heading: 'Key metrics',
+          rows: [
+            ['Active contracts', activeContracts.count],
+            ['Contracts expiring soon', `${expiringContracts.count} (within ${expiringContracts.withinDays} days)`],
+            ['Pending legal opinions', pendingOpinions.count],
+            ['Compliance score', complianceScore.score === null ? '—' : `${complianceScore.score}% (${complianceScore.compliant}/${complianceScore.total})`],
+          ],
+        },
+        {
+          heading: 'Court cases',
+          rows: [
+            ['Open cases', courtCases.openCount],
+            ['Total exposure', courtCases.totalExposure.toLocaleString()],
+          ],
+        },
+        {
+          heading: `High-risk litigation (>= ${highRiskLitigation.threshold.toLocaleString()})`,
+          rows:
+            highRiskLitigation.count === 0
+              ? [['None currently', '—']]
+              : highRiskLitigation.cases.map((c) => [`${c.caseNumber} — ${c.opposingParty}`, Number(c.financialExposure).toLocaleString()]),
+        },
+        {
+          heading: `Contracts expiring within ${expiringContracts.withinDays} days`,
+          rows:
+            expiringContracts.contracts.length === 0
+              ? [['None coming up', '—']]
+              : expiringContracts.contracts.map((c) => [`${c.title} — ${c.counterparty}`, new Date(c.endDate).toLocaleDateString()]),
+        },
+        {
+          heading: `Monthly performance — ${monthlyPerformance.month}`,
+          rows: [
+            ['Contracts created', monthlyPerformance.contractsCreated],
+            ['Contracts executed', monthlyPerformance.contractsExecuted],
+            ['Opinions approved', monthlyPerformance.opinionsCompleted],
+            ['Cases resolved', monthlyPerformance.casesResolved],
+            ['MoUs approved', monthlyPerformance.mousApproved],
+            ['Debt recovered', monthlyPerformance.debtRecoveredThisMonth.toLocaleString()],
+          ],
+        },
+      ],
+    });
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -56,9 +108,14 @@ export default function DashboardModule() {
           </p>
           <h1 className="text-2xl font-serif font-semibold text-ink">Executive dashboard</h1>
         </div>
-        <button onClick={load} className="text-xs font-mono uppercase tracking-wide text-ink-light/70 hover:text-ink border border-ink/20 rounded-sm px-3 py-1.5">
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleExportPDF} className="text-xs font-mono uppercase tracking-wide text-ink-light/70 hover:text-ink border border-ink/20 rounded-sm px-3 py-1.5">
+            Export PDF
+          </button>
+          <button onClick={load} className="text-xs font-mono uppercase tracking-wide text-ink-light/70 hover:text-ink border border-ink/20 rounded-sm px-3 py-1.5">
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-6">

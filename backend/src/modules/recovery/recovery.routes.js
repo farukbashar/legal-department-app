@@ -6,11 +6,11 @@ const { requireAuth, requireRole } = require('../../middleware/auth.middleware')
 
 router.use(requireAuth);
 
-// GET /api/recovery/cases?status=outstanding
+// GET /api/recovery/cases?status=outstanding&archived=false|true|all
 router.get('/cases', async (req, res) => {
   try {
-    const { status } = req.query;
-    const cases = await debtCasesService.listDebtCases({ status });
+    const { status, archived } = req.query;
+    const cases = await debtCasesService.listDebtCases({ status, archived });
     res.json(cases);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -47,8 +47,28 @@ router.put('/cases/:id', requireRole('admin', 'head_of_legal', 'legal_officer'),
   }
 });
 
-// DELETE /api/recovery/cases/:id
-router.delete('/cases/:id', requireRole('admin', 'head_of_legal'), async (req, res) => {
+// POST /api/recovery/cases/:id/archive
+router.post('/cases/:id/archive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const c = await debtCasesService.archiveDebtCase(req.params.id, req.user.id);
+    res.json(c);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/recovery/cases/:id/unarchive
+router.post('/cases/:id/unarchive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const c = await debtCasesService.unarchiveDebtCase(req.params.id, req.user.id);
+    res.json(c);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/recovery/cases/:id — permanent, admin-only
+router.delete('/cases/:id', requireRole('admin'), async (req, res) => {
   try {
     await debtCasesService.deleteDebtCase(req.params.id, req.user.id);
     res.status(204).send();

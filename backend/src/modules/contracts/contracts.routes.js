@@ -9,11 +9,11 @@ const { requireAuth, requireRole } = require('../../middleware/auth.middleware')
 // All contract routes require a logged-in user
 router.use(requireAuth);
 
-// GET /api/contracts?status=active&department=Finance
+// GET /api/contracts?status=active&department=Finance&archived=false|true|all
 router.get('/', async (req, res) => {
   try {
-    const { status, department } = req.query;
-    const contracts = await contractsService.listContracts({ status, department });
+    const { status, department, archived } = req.query;
+    const contracts = await contractsService.listContracts({ status, department, archived });
     res.json(contracts);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -50,8 +50,28 @@ router.put('/:id', requireRole('admin', 'head_of_legal', 'legal_officer'), async
   }
 });
 
-// DELETE /api/contracts/:id  (admin / head of legal only)
-router.delete('/:id', requireRole('admin', 'head_of_legal'), async (req, res) => {
+// POST /api/contracts/:id/archive — soft delete, reversible
+router.post('/:id/archive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const contract = await contractsService.archiveContract(req.params.id, req.user.id);
+    res.json(contract);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/contracts/:id/unarchive
+router.post('/:id/unarchive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const contract = await contractsService.unarchiveContract(req.params.id, req.user.id);
+    res.json(contract);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/contracts/:id — permanent, admin-only
+router.delete('/:id', requireRole('admin'), async (req, res) => {
   try {
     await contractsService.deleteContract(req.params.id, req.user.id);
     res.status(204).send();

@@ -1,4 +1,15 @@
-export default function ResolutionList({ resolutions, q, onQChange, onSelect, onNew, loading }) {
+import ArchivedToggle from './ArchivedToggle.jsx';
+import ExportCSVButton from './ExportCSVButton.jsx';
+
+const CSV_COLUMNS = [
+  { key: 'id', label: 'ID' },
+  { key: 'resolutionNumber', label: 'Resolution number' },
+  { key: 'title', label: 'Title' },
+  { key: 'summary', label: 'Summary' },
+  { key: 'resolutionDate', label: 'Resolution date' },
+];
+
+export default function ResolutionList({ resolutions, q, onQChange, showArchived, onShowArchivedChange, onSelect, onNew, loading }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -8,20 +19,26 @@ export default function ResolutionList({ resolutions, q, onQChange, onSelect, on
           </p>
           <h1 className="text-2xl font-serif font-semibold text-ink">Board resolution archive</h1>
         </div>
-        <button
-          onClick={onNew}
-          className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
-        >
-          + New resolution
-        </button>
+        <div className="flex gap-2">
+          <ExportCSVButton filename="board-resolutions" rows={resolutions} columns={CSV_COLUMNS} />
+          <button
+            onClick={onNew}
+            className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
+          >
+            + New resolution
+          </button>
+        </div>
       </div>
 
-      <input
-        value={q}
-        onChange={(e) => onQChange(e.target.value)}
-        placeholder="Search by title, resolution number, or summary"
-        className="input mb-4 max-w-md"
-      />
+      <div className="flex items-center gap-4 mb-4">
+        <input
+          value={q}
+          onChange={(e) => onQChange(e.target.value)}
+          placeholder="Search by title, resolution number, or summary"
+          className="input max-w-md"
+        />
+        <ArchivedToggle checked={showArchived} onChange={onShowArchivedChange} />
+      </div>
 
       <div className="border border-ink/15 rounded-sm overflow-hidden bg-white">
         <table className="w-full text-sm">

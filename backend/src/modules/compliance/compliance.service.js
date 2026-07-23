@@ -1,10 +1,17 @@
 const prisma = require('../../db/prisma');
 
-async function listObligations({ status, responsibleOfficerId } = {}) {
+function archivedFilter(archived) {
+  if (archived === 'true') return { archivedAt: { not: null } };
+  if (archived === 'all') return {};
+  return { archivedAt: null };
+}
+
+async function listObligations({ status, responsibleOfficerId, archived } = {}) {
   return prisma.complianceObligation.findMany({
     where: {
       ...(status ? { status } : {}),
       ...(responsibleOfficerId ? { responsibleOfficerId: Number(responsibleOfficerId) } : {}),
+      ...archivedFilter(archived),
     },
     include: { responsibleOfficer: true },
     orderBy: { dueDate: 'asc' },
@@ -83,6 +90,22 @@ async function updateObligation(id, data, userId) {
   return o;
 }
 
+async function archiveObligation(id, userId) {
+  const o = await prisma.complianceObligation.update({ where: { id: Number(id) }, data: { archivedAt: new Date() } });
+  await prisma.auditLog.create({
+    data: { entityType: 'compliance_obligation', entityId: o.id, action: 'archived', performedBy: userId },
+  });
+  return o;
+}
+
+async function unarchiveObligation(id, userId) {
+  const o = await prisma.complianceObligation.update({ where: { id: Number(id) }, data: { archivedAt: null } });
+  await prisma.auditLog.create({
+    data: { entityType: 'compliance_obligation', entityId: o.id, action: 'unarchived', performedBy: userId },
+  });
+  return o;
+}
+
 async function deleteObligation(id, userId) {
   await prisma.auditLog.create({
     data: {
@@ -95,4 +118,12 @@ async function deleteObligation(id, userId) {
   return prisma.complianceObligation.delete({ where: { id: Number(id) } });
 }
 
-module.exports = { listObligations, getObligation, createObligation, updateObligation, deleteObligation };
+module.exports = {
+  listObligations,
+  getObligation,
+  createObligation,
+  updateObligation,
+  archiveObligation,
+  unarchiveObligation,
+  deleteObligation,
+};

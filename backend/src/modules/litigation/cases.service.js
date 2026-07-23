@@ -1,10 +1,17 @@
 const prisma = require('../../db/prisma');
 
-async function listCases({ status, court } = {}) {
+function archivedFilter(archived) {
+  if (archived === 'true') return { archivedAt: { not: null } };
+  if (archived === 'all') return {};
+  return { archivedAt: null };
+}
+
+async function listCases({ status, court, archived } = {}) {
   return prisma.litigationCase.findMany({
     where: {
       ...(status ? { status } : {}),
       ...(court ? { court } : {}),
+      ...archivedFilter(archived),
     },
     include: { owner: true, judgment: true },
     orderBy: { createdAt: 'desc' },
@@ -75,6 +82,22 @@ async function updateCase(id, data, userId) {
   return c;
 }
 
+async function archiveCase(id, userId) {
+  const c = await prisma.litigationCase.update({ where: { id: Number(id) }, data: { archivedAt: new Date() } });
+  await prisma.auditLog.create({
+    data: { entityType: 'litigation_case', entityId: c.id, action: 'archived', performedBy: userId },
+  });
+  return c;
+}
+
+async function unarchiveCase(id, userId) {
+  const c = await prisma.litigationCase.update({ where: { id: Number(id) }, data: { archivedAt: null } });
+  await prisma.auditLog.create({
+    data: { entityType: 'litigation_case', entityId: c.id, action: 'unarchived', performedBy: userId },
+  });
+  return c;
+}
+
 async function deleteCase(id, userId) {
   await prisma.auditLog.create({
     data: {
@@ -87,4 +110,4 @@ async function deleteCase(id, userId) {
   return prisma.litigationCase.delete({ where: { id: Number(id) } });
 }
 
-module.exports = { listCases, getCase, createCase, updateCase, deleteCase };
+module.exports = { listCases, getCase, createCase, updateCase, archiveCase, unarchiveCase, deleteCase };

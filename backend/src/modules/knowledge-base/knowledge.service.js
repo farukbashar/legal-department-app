@@ -2,9 +2,15 @@ const prisma = require('../../db/prisma');
 
 const VALID_TYPES = ['act', 'regulation', 'policy', 'precedent', 'template'];
 
+function archivedFilter(archived) {
+  if (archived === 'true') return { archivedAt: { not: null } };
+  if (archived === 'all') return {};
+  return { archivedAt: null };
+}
+
 // listItems doubles as search: filter by `type` (act/regulation/policy/
 // precedent/template) and/or a keyword `q` across title and content.
-async function listItems({ type, q } = {}) {
+async function listItems({ type, q, archived } = {}) {
   return prisma.knowledgeItem.findMany({
     where: {
       ...(type ? { type } : {}),
@@ -16,6 +22,7 @@ async function listItems({ type, q } = {}) {
             ],
           }
         : {}),
+      ...archivedFilter(archived),
     },
     include: { createdBy: true },
     orderBy: { updatedAt: 'desc' },
@@ -86,6 +93,22 @@ async function updateItem(id, data, userId) {
   return item;
 }
 
+async function archiveItem(id, userId) {
+  const item = await prisma.knowledgeItem.update({ where: { id: Number(id) }, data: { archivedAt: new Date() } });
+  await prisma.auditLog.create({
+    data: { entityType: 'knowledge_item', entityId: item.id, action: 'archived', performedBy: userId },
+  });
+  return item;
+}
+
+async function unarchiveItem(id, userId) {
+  const item = await prisma.knowledgeItem.update({ where: { id: Number(id) }, data: { archivedAt: null } });
+  await prisma.auditLog.create({
+    data: { entityType: 'knowledge_item', entityId: item.id, action: 'unarchived', performedBy: userId },
+  });
+  return item;
+}
+
 async function deleteItem(id, userId) {
   await prisma.auditLog.create({
     data: {
@@ -98,4 +121,4 @@ async function deleteItem(id, userId) {
   return prisma.knowledgeItem.delete({ where: { id: Number(id) } });
 }
 
-module.exports = { listItems, getItem, createItem, updateItem, deleteItem };
+module.exports = { listItems, getItem, createItem, updateItem, archiveItem, unarchiveItem, deleteItem };

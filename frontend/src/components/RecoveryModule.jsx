@@ -9,7 +9,7 @@ export default function RecoveryModule({ jumpToId, onJumpHandled }) {
   const [selectedId, setSelectedId] = useState(null);
   const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ status: '' });
+  const [filters, setFilters] = useState({ status: '', archived: '' });
 
   useEffect(() => {
     if (jumpToId) {
@@ -25,6 +25,7 @@ export default function RecoveryModule({ jumpToId, onJumpHandled }) {
     try {
       const data = await api.listDebtCases({
         ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.archived ? { archived: filters.archived } : {}),
       });
       setCases(data);
     } catch (err) {

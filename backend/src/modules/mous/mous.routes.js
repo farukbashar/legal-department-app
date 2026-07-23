@@ -8,11 +8,11 @@ const { requireAuth, requireRole } = require('../../middleware/auth.middleware')
 
 router.use(requireAuth);
 
-// GET /api/mous?status=draft
+// GET /api/mous?status=draft&archived=false|true|all
 router.get('/', async (req, res) => {
   try {
-    const { status } = req.query;
-    const mous = await draftingService.listMous({ status });
+    const { status, archived } = req.query;
+    const mous = await draftingService.listMous({ status, archived });
     res.json(mous);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -49,8 +49,28 @@ router.put('/:id', requireRole('admin', 'head_of_legal', 'legal_officer'), async
   }
 });
 
-// DELETE /api/mous/:id
-router.delete('/:id', requireRole('admin', 'head_of_legal'), async (req, res) => {
+// POST /api/mous/:id/archive
+router.post('/:id/archive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const mou = await draftingService.archiveMou(req.params.id, req.user.id);
+    res.json(mou);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/mous/:id/unarchive
+router.post('/:id/unarchive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const mou = await draftingService.unarchiveMou(req.params.id, req.user.id);
+    res.json(mou);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/mous/:id — permanent, admin-only
+router.delete('/:id', requireRole('admin'), async (req, res) => {
   try {
     await draftingService.deleteMou(req.params.id, req.user.id);
     res.status(204).send();

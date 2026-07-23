@@ -9,9 +9,15 @@ function withBalance(debtCase) {
   };
 }
 
-async function listDebtCases({ status } = {}) {
+function archivedFilter(archived) {
+  if (archived === 'true') return { archivedAt: { not: null } };
+  if (archived === 'all') return {};
+  return { archivedAt: null };
+}
+
+async function listDebtCases({ status, archived } = {}) {
   const cases = await prisma.debtCase.findMany({
-    where: { ...(status ? { status } : {}) },
+    where: { ...(status ? { status } : {}), ...archivedFilter(archived) },
     include: { owner: true, payments: true },
     orderBy: { createdAt: 'desc' },
   });
@@ -77,6 +83,22 @@ async function updateDebtCase(id, data, userId) {
   return c;
 }
 
+async function archiveDebtCase(id, userId) {
+  const c = await prisma.debtCase.update({ where: { id: Number(id) }, data: { archivedAt: new Date() } });
+  await prisma.auditLog.create({
+    data: { entityType: 'debt_case', entityId: c.id, action: 'archived', performedBy: userId },
+  });
+  return c;
+}
+
+async function unarchiveDebtCase(id, userId) {
+  const c = await prisma.debtCase.update({ where: { id: Number(id) }, data: { archivedAt: null } });
+  await prisma.auditLog.create({
+    data: { entityType: 'debt_case', entityId: c.id, action: 'unarchived', performedBy: userId },
+  });
+  return c;
+}
+
 async function deleteDebtCase(id, userId) {
   await prisma.auditLog.create({
     data: {
@@ -89,4 +111,12 @@ async function deleteDebtCase(id, userId) {
   return prisma.debtCase.delete({ where: { id: Number(id) } });
 }
 
-module.exports = { listDebtCases, getDebtCase, createDebtCase, updateDebtCase, deleteDebtCase };
+module.exports = {
+  listDebtCases,
+  getDebtCase,
+  createDebtCase,
+  updateDebtCase,
+  archiveDebtCase,
+  unarchiveDebtCase,
+  deleteDebtCase,
+};

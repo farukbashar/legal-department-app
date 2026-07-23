@@ -5,11 +5,11 @@ const { requireAuth, requireRole } = require('../../middleware/auth.middleware')
 
 router.use(requireAuth);
 
-// GET /api/compliance?status=overdue&responsibleOfficerId=3
+// GET /api/compliance?status=overdue&responsibleOfficerId=3&archived=false|true|all
 router.get('/', async (req, res) => {
   try {
-    const { status, responsibleOfficerId } = req.query;
-    const obligations = await complianceService.listObligations({ status, responsibleOfficerId });
+    const { status, responsibleOfficerId, archived } = req.query;
+    const obligations = await complianceService.listObligations({ status, responsibleOfficerId, archived });
     res.json(obligations);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -46,8 +46,28 @@ router.put('/:id', requireRole('admin', 'head_of_legal', 'compliance_officer'), 
   }
 });
 
-// DELETE /api/compliance/:id
-router.delete('/:id', requireRole('admin', 'head_of_legal'), async (req, res) => {
+// POST /api/compliance/:id/archive
+router.post('/:id/archive', requireRole('admin', 'head_of_legal', 'compliance_officer'), async (req, res) => {
+  try {
+    const o = await complianceService.archiveObligation(req.params.id, req.user.id);
+    res.json(o);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/compliance/:id/unarchive
+router.post('/:id/unarchive', requireRole('admin', 'head_of_legal', 'compliance_officer'), async (req, res) => {
+  try {
+    const o = await complianceService.unarchiveObligation(req.params.id, req.user.id);
+    res.json(o);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/compliance/:id — permanent, admin-only
+router.delete('/:id', requireRole('admin'), async (req, res) => {
   try {
     await complianceService.deleteObligation(req.params.id, req.user.id);
     res.status(204).send();

@@ -1,7 +1,17 @@
 import OpinionStatusBadge from './OpinionStatusBadge.jsx';
+import ArchivedToggle from './ArchivedToggle.jsx';
+import ExportCSVButton from './ExportCSVButton.jsx';
 
 const STATUS_OPTIONS = ['', 'submitted', 'assigned', 'drafting', 'in_review', 'completed'];
 const PRIORITY_OPTIONS = ['', 'low', 'medium', 'high', 'urgent'];
+const CSV_COLUMNS = [
+  { key: 'id', label: 'ID' },
+  { key: 'subject', label: 'Subject' },
+  { key: 'requester.fullName', label: 'Requester' },
+  { key: 'assignedTo.fullName', label: 'Assigned to' },
+  { key: 'priority', label: 'Priority' },
+  { key: 'status', label: 'Status' },
+];
 
 export default function OpinionRequestList({ requests, filters, onFilterChange, onSelect, onNew, onSearch, loading }) {
   return (
@@ -14,6 +24,7 @@ export default function OpinionRequestList({ requests, filters, onFilterChange, 
           <h1 className="text-2xl font-serif font-semibold text-ink">Legal opinion requests</h1>
         </div>
         <div className="flex gap-2">
+          <ExportCSVButton filename="legal-opinion-requests" rows={requests} columns={CSV_COLUMNS} />
           <button
             onClick={onSearch}
             className="text-sm font-medium px-4 py-2 rounded-sm border border-ink/20 hover:bg-ink/5"
@@ -29,7 +40,7 @@ export default function OpinionRequestList({ requests, filters, onFilterChange, 
         </div>
       </div>
 
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-4 items-center">
         <select
           value={filters.status}
           onChange={(e) => onFilterChange({ ...filters, status: e.target.value })}
@@ -48,6 +59,10 @@ export default function OpinionRequestList({ requests, filters, onFilterChange, 
             <option key={p} value={p}>{p || 'All priorities'}</option>
           ))}
         </select>
+        <ArchivedToggle
+          checked={filters.archived === 'true'}
+          onChange={(checked) => onFilterChange({ ...filters, archived: checked ? 'true' : '' })}
+        />
       </div>
 
       <div className="border border-ink/15 rounded-sm overflow-hidden bg-white">

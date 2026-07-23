@@ -19,11 +19,11 @@ router.post('/requests', async (req, res) => {
   }
 });
 
-// GET /api/legal-opinions/requests?status=submitted&priority=high
+// GET /api/legal-opinions/requests?status=submitted&priority=high&archived=false|true|all
 router.get('/requests', async (req, res) => {
   try {
-    const { status, priority } = req.query;
-    const requests = await requestsService.listRequests({ status, priority });
+    const { status, priority, archived } = req.query;
+    const requests = await requestsService.listRequests({ status, priority, archived });
     res.json(requests);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -45,6 +45,36 @@ router.post('/requests/:id/assign', requireRole('admin', 'head_of_legal'), async
   try {
     const request = await requestsService.assignOfficer(req.params.id, req.body, req.user.id);
     res.json(request);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/legal-opinions/requests/:id/archive
+router.post('/requests/:id/archive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const request = await requestsService.archiveRequest(req.params.id, req.user.id);
+    res.json(request);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/legal-opinions/requests/:id/unarchive
+router.post('/requests/:id/unarchive', requireRole('admin', 'head_of_legal', 'legal_officer'), async (req, res) => {
+  try {
+    const request = await requestsService.unarchiveRequest(req.params.id, req.user.id);
+    res.json(request);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/legal-opinions/requests/:id — permanent, admin-only
+router.delete('/requests/:id', requireRole('admin'), async (req, res) => {
+  try {
+    await requestsService.deleteRequest(req.params.id, req.user.id);
+    res.status(204).send();
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

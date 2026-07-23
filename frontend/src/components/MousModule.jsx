@@ -9,7 +9,7 @@ export default function MousModule({ jumpToId, onJumpHandled }) {
   const [selectedId, setSelectedId] = useState(null);
   const [mous, setMous] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ status: '' });
+  const [filters, setFilters] = useState({ status: '', archived: '' });
 
   useEffect(() => {
     if (jumpToId) {
@@ -25,6 +25,7 @@ export default function MousModule({ jumpToId, onJumpHandled }) {
     try {
       const data = await api.listMous({
         ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.archived ? { archived: filters.archived } : {}),
       });
       setMous(data);
     } catch (err) {

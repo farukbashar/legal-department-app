@@ -3,6 +3,7 @@ import { api } from '../api.js';
 import StatusBadge from './StatusBadge.jsx';
 import LedgerStamps from './LedgerStamps.jsx';
 import FileUploadField from './FileUploadField.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
 
 export default function ContractDetail({ contractId, onBack, onChanged }) {
   const [contract, setContract] = useState(null);
@@ -93,6 +94,17 @@ export default function ContractDetail({ contractId, onBack, onChanged }) {
             Start approval workflow
           </button>
         )}
+
+        <ArchiveActions
+          isArchived={Boolean(contract.archivedAt)}
+          onArchive={() => handleAction(() => api.archiveContract(contractId))}
+          onUnarchive={() => handleAction(() => api.unarchiveContract(contractId))}
+          onDelete={async () => {
+            await api.deleteContract(contractId);
+            onChanged?.();
+            onBack();
+          }}
+        />
       </div>
 
       <Section title="Approval workflow">

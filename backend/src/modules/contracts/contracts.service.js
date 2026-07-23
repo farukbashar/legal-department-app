@@ -1,10 +1,17 @@
 const prisma = require('../../db/prisma');
 
-async function listContracts({ status, department } = {}) {
+function archivedFilter(archived) {
+  if (archived === 'true') return { archivedAt: { not: null } };
+  if (archived === 'all') return {};
+  return { archivedAt: null }; // default: active only
+}
+
+async function listContracts({ status, department, archived } = {}) {
   return prisma.contract.findMany({
     where: {
       ...(status ? { status } : {}),
       ...(department ? { department } : {}),
+      ...archivedFilter(archived),
     },
     include: { owner: true },
     orderBy: { createdAt: 'desc' },
@@ -88,6 +95,28 @@ async function updateContract(id, data, userId) {
   return contract;
 }
 
+async function archiveContract(id, userId) {
+  const contract = await prisma.contract.update({
+    where: { id: Number(id) },
+    data: { archivedAt: new Date() },
+  });
+  await prisma.auditLog.create({
+    data: { entityType: 'contract', entityId: contract.id, action: 'archived', performedBy: userId },
+  });
+  return contract;
+}
+
+async function unarchiveContract(id, userId) {
+  const contract = await prisma.contract.update({
+    where: { id: Number(id) },
+    data: { archivedAt: null },
+  });
+  await prisma.auditLog.create({
+    data: { entityType: 'contract', entityId: contract.id, action: 'unarchived', performedBy: userId },
+  });
+  return contract;
+}
+
 async function deleteContract(id, userId) {
   await prisma.auditLog.create({
     data: {
@@ -106,5 +135,7 @@ module.exports = {
   getContract,
   createContract,
   updateContract,
+  archiveContract,
+  unarchiveContract,
   deleteContract,
 };

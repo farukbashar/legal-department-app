@@ -9,13 +9,14 @@ export default function ComplianceModule() {
   const [selectedId, setSelectedId] = useState(null);
   const [obligations, setObligations] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ status: '' });
+  const [filters, setFilters] = useState({ status: '', archived: '' });
 
   const loadObligations = async () => {
     setLoading(true);
     try {
       const data = await api.listObligations({
         ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.archived ? { archived: filters.archived } : {}),
       });
       setObligations(data);
     } catch (err) {

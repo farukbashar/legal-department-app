@@ -1,6 +1,15 @@
 import MouStatusBadge from './MouStatusBadge.jsx';
+import ArchivedToggle from './ArchivedToggle.jsx';
+import ExportCSVButton from './ExportCSVButton.jsx';
 
 const STATUS_OPTIONS = ['', 'draft', 'in_review', 'approved', 'renewed', 'expired', 'terminated'];
+const CSV_COLUMNS = [
+  { key: 'id', label: 'ID' },
+  { key: 'title', label: 'Title' },
+  { key: 'parties', label: 'Parties' },
+  { key: 'status', label: 'Status' },
+  { key: 'renewalDate', label: 'Renewal date' },
+];
 
 export default function MouList({ mous, filters, onFilterChange, onSelect, onNew, loading }) {
   return (
@@ -12,15 +21,18 @@ export default function MouList({ mous, filters, onFilterChange, onSelect, onNew
           </p>
           <h1 className="text-2xl font-serif font-semibold text-ink">MoU register</h1>
         </div>
-        <button
-          onClick={onNew}
-          className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
-        >
-          + New MoU
-        </button>
+        <div className="flex gap-2">
+          <ExportCSVButton filename="mous" rows={mous} columns={CSV_COLUMNS} />
+          <button
+            onClick={onNew}
+            className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
+          >
+            + New MoU
+          </button>
+        </div>
       </div>
 
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-4 items-center">
         <select
           value={filters.status}
           onChange={(e) => onFilterChange({ ...filters, status: e.target.value })}
@@ -30,6 +42,10 @@ export default function MouList({ mous, filters, onFilterChange, onSelect, onNew
             <option key={s} value={s}>{s ? s.replace('_', ' ') : 'All statuses'}</option>
           ))}
         </select>
+        <ArchivedToggle
+          checked={filters.archived === 'true'}
+          onChange={(checked) => onFilterChange({ ...filters, archived: checked ? 'true' : '' })}
+        />
       </div>
 
       <div className="border border-ink/15 rounded-sm overflow-hidden bg-white">

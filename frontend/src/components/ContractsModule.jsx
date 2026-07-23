@@ -9,7 +9,7 @@ export default function ContractsModule({ jumpToId, onJumpHandled }) {
   const [selectedId, setSelectedId] = useState(null);
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ status: '', department: '' });
+  const [filters, setFilters] = useState({ status: '', department: '', archived: '' });
 
   useEffect(() => {
     if (jumpToId) {
@@ -26,6 +26,7 @@ export default function ContractsModule({ jumpToId, onJumpHandled }) {
       const data = await api.listContracts({
         ...(filters.status ? { status: filters.status } : {}),
         ...(filters.department ? { department: filters.department } : {}),
+        ...(filters.archived ? { archived: filters.archived } : {}),
       });
       setContracts(data);
     } catch (err) {

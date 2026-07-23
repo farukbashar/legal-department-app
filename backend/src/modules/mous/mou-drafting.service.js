@@ -1,8 +1,14 @@
 const prisma = require('../../db/prisma');
 
-async function listMous({ status } = {}) {
+function archivedFilter(archived) {
+  if (archived === 'true') return { archivedAt: { not: null } };
+  if (archived === 'all') return {};
+  return { archivedAt: null };
+}
+
+async function listMous({ status, archived } = {}) {
   return prisma.mou.findMany({
-    where: { ...(status ? { status } : {}) },
+    where: { ...(status ? { status } : {}), ...archivedFilter(archived) },
     include: { owner: true },
     orderBy: { createdAt: 'desc' },
   });
@@ -79,6 +85,22 @@ async function updateDraft(id, data, userId) {
   return mou;
 }
 
+async function archiveMou(id, userId) {
+  const mou = await prisma.mou.update({ where: { id: Number(id) }, data: { archivedAt: new Date() } });
+  await prisma.auditLog.create({
+    data: { entityType: 'mou', entityId: mou.id, action: 'archived', performedBy: userId },
+  });
+  return mou;
+}
+
+async function unarchiveMou(id, userId) {
+  const mou = await prisma.mou.update({ where: { id: Number(id) }, data: { archivedAt: null } });
+  await prisma.auditLog.create({
+    data: { entityType: 'mou', entityId: mou.id, action: 'unarchived', performedBy: userId },
+  });
+  return mou;
+}
+
 async function deleteMou(id, userId) {
   await prisma.auditLog.create({
     data: {
@@ -91,4 +113,4 @@ async function deleteMou(id, userId) {
   return prisma.mou.delete({ where: { id: Number(id) } });
 }
 
-module.exports = { listMous, getMou, draftMou, updateDraft, deleteMou };
+module.exports = { listMous, getMou, draftMou, updateDraft, archiveMou, unarchiveMou, deleteMou };

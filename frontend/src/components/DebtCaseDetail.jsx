@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import DebtStatusBadge from './DebtStatusBadge.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
 
 export default function DebtCaseDetail({ caseId, onBack, onChanged }) {
   const [c, setCase] = useState(null);
@@ -79,6 +80,17 @@ export default function DebtCaseDetail({ caseId, onBack, onChanged }) {
             <dd className="text-ink font-mono">{c.currency} {Number(c.outstandingBalance).toLocaleString()}</dd>
           </div>
         </dl>
+
+        <ArchiveActions
+          isArchived={Boolean(c.archivedAt)}
+          onArchive={() => handleAction(() => api.archiveDebtCase(caseId))}
+          onUnarchive={() => handleAction(() => api.unarchiveDebtCase(caseId))}
+          onDelete={async () => {
+            await api.deleteDebtCase(caseId);
+            onChanged?.();
+            onBack();
+          }}
+        />
       </div>
 
       <div className="bg-white border border-ink/15 rounded-sm p-6">

@@ -37,6 +37,8 @@ export const api = {
   getContract: (id) => request(`/contracts/${id}`),
   createContract: (data) => request('/contracts', { method: 'POST', body: JSON.stringify(data) }),
   updateContract: (id, data) => request(`/contracts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  archiveContract: (id) => request(`/contracts/${id}/archive`, { method: 'POST' }),
+  unarchiveContract: (id) => request(`/contracts/${id}/unarchive`, { method: 'POST' }),
   deleteContract: (id) => request(`/contracts/${id}`, { method: 'DELETE' }),
 
   startApprovals: (id) => request(`/contracts/${id}/approvals/start`, { method: 'POST' }),
@@ -69,6 +71,9 @@ export const api = {
   getOpinionRequest: (id) => request(`/legal-opinions/requests/${id}`),
   assignOfficer: (id, officerId) =>
     request(`/legal-opinions/requests/${id}/assign`, { method: 'POST', body: JSON.stringify({ officerId }) }),
+  archiveOpinionRequest: (id) => request(`/legal-opinions/requests/${id}/archive`, { method: 'POST' }),
+  unarchiveOpinionRequest: (id) => request(`/legal-opinions/requests/${id}/unarchive`, { method: 'POST' }),
+  deleteOpinionRequest: (id) => request(`/legal-opinions/requests/${id}`, { method: 'DELETE' }),
   startDraft: (requestId) => request(`/legal-opinions/requests/${requestId}/draft/start`, { method: 'POST' }),
   getOpinion: (id) => request(`/legal-opinions/opinions/${id}`),
   updateDraft: (opinionId, content) =>
@@ -92,6 +97,8 @@ export const api = {
   getCase: (id) => request(`/litigation/cases/${id}`),
   createCase: (data) => request('/litigation/cases', { method: 'POST', body: JSON.stringify(data) }),
   updateCase: (id, data) => request(`/litigation/cases/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  archiveCase: (id) => request(`/litigation/cases/${id}/archive`, { method: 'POST' }),
+  unarchiveCase: (id) => request(`/litigation/cases/${id}/unarchive`, { method: 'POST' }),
   deleteCase: (id) => request(`/litigation/cases/${id}`, { method: 'DELETE' }),
 
   scheduleHearing: (caseId, data) => request(`/litigation/cases/${caseId}/hearings`, { method: 'POST', body: JSON.stringify(data) }),
@@ -114,6 +121,8 @@ export const api = {
   getMou: (id) => request(`/mous/${id}`),
   createMou: (data) => request('/mous', { method: 'POST', body: JSON.stringify(data) }),
   updateMouDraft: (id, data) => request(`/mous/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  archiveMou: (id) => request(`/mous/${id}/archive`, { method: 'POST' }),
+  unarchiveMou: (id) => request(`/mous/${id}/unarchive`, { method: 'POST' }),
   deleteMou: (id) => request(`/mous/${id}`, { method: 'DELETE' }),
   submitMouForReview: (id) => request(`/mous/${id}/submit-for-review`, { method: 'POST' }),
   startMouApprovals: (id) => request(`/mous/${id}/approvals/start`, { method: 'POST' }),
@@ -131,6 +140,8 @@ export const api = {
   getResolution: (id) => request(`/board-resolutions/${id}`),
   createResolution: (data) => request('/board-resolutions', { method: 'POST', body: JSON.stringify(data) }),
   updateResolution: (id, data) => request(`/board-resolutions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  archiveResolution: (id) => request(`/board-resolutions/${id}/archive`, { method: 'POST' }),
+  unarchiveResolution: (id) => request(`/board-resolutions/${id}/unarchive`, { method: 'POST' }),
   deleteResolution: (id) => request(`/board-resolutions/${id}`, { method: 'DELETE' }),
   linkResolutionDocument: (id, doc) => request(`/board-resolutions/${id}/documents`, { method: 'POST', body: JSON.stringify(doc) }),
   listResolutionDocuments: (id) => request(`/board-resolutions/${id}/documents`),
@@ -143,6 +154,8 @@ export const api = {
   getObligation: (id) => request(`/compliance/${id}`),
   createObligation: (data) => request('/compliance', { method: 'POST', body: JSON.stringify(data) }),
   updateObligation: (id, data) => request(`/compliance/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  archiveObligation: (id) => request(`/compliance/${id}/archive`, { method: 'POST' }),
+  unarchiveObligation: (id) => request(`/compliance/${id}/unarchive`, { method: 'POST' }),
   deleteObligation: (id) => request(`/compliance/${id}`, { method: 'DELETE' }),
 
   // Recovery & Debt Cases
@@ -153,6 +166,8 @@ export const api = {
   getDebtCase: (id) => request(`/recovery/cases/${id}`),
   createDebtCase: (data) => request('/recovery/cases', { method: 'POST', body: JSON.stringify(data) }),
   updateDebtCase: (id, data) => request(`/recovery/cases/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  archiveDebtCase: (id) => request(`/recovery/cases/${id}/archive`, { method: 'POST' }),
+  unarchiveDebtCase: (id) => request(`/recovery/cases/${id}/unarchive`, { method: 'POST' }),
   deleteDebtCase: (id) => request(`/recovery/cases/${id}`, { method: 'DELETE' }),
   recordDebtPayment: (id, data) => request(`/recovery/cases/${id}/payments`, { method: 'POST', body: JSON.stringify(data) }),
   listDebtPayments: (id) => request(`/recovery/cases/${id}/payments`),
@@ -165,6 +180,8 @@ export const api = {
   getKnowledgeItem: (id) => request(`/knowledge-base/${id}`),
   createKnowledgeItem: (data) => request('/knowledge-base', { method: 'POST', body: JSON.stringify(data) }),
   updateKnowledgeItem: (id, data) => request(`/knowledge-base/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  archiveKnowledgeItem: (id) => request(`/knowledge-base/${id}/archive`, { method: 'POST' }),
+  unarchiveKnowledgeItem: (id) => request(`/knowledge-base/${id}/unarchive`, { method: 'POST' }),
   deleteKnowledgeItem: (id) => request(`/knowledge-base/${id}`, { method: 'DELETE' }),
 
   // Executive Dashboard

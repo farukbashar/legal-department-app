@@ -1,6 +1,14 @@
 import KnowledgeTypeBadge from './KnowledgeTypeBadge.jsx';
+import ArchivedToggle from './ArchivedToggle.jsx';
+import ExportCSVButton from './ExportCSVButton.jsx';
 
 const TYPE_OPTIONS = ['', 'act', 'regulation', 'policy', 'precedent', 'template'];
+const CSV_COLUMNS = [
+  { key: 'id', label: 'ID' },
+  { key: 'title', label: 'Title' },
+  { key: 'type', label: 'Type' },
+  { key: 'updatedAt', label: 'Last updated' },
+];
 
 export default function KnowledgeItemList({ items, filters, onFilterChange, onSelect, onNew, loading }) {
   return (
@@ -12,15 +20,18 @@ export default function KnowledgeItemList({ items, filters, onFilterChange, onSe
           </p>
           <h1 className="text-2xl font-serif font-semibold text-ink">Legal knowledge base</h1>
         </div>
-        <button
-          onClick={onNew}
-          className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
-        >
-          + New item
-        </button>
+        <div className="flex gap-2">
+          <ExportCSVButton filename="knowledge-base" rows={items} columns={CSV_COLUMNS} />
+          <button
+            onClick={onNew}
+            className="bg-ink text-paper text-sm font-medium px-4 py-2 rounded-sm hover:bg-ink-light"
+          >
+            + New item
+          </button>
+        </div>
       </div>
 
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-3 mb-4 items-center">
         <select
           value={filters.type}
           onChange={(e) => onFilterChange({ ...filters, type: e.target.value })}
@@ -35,6 +46,10 @@ export default function KnowledgeItemList({ items, filters, onFilterChange, onSe
           onChange={(e) => onFilterChange({ ...filters, q: e.target.value })}
           placeholder="Search by title or content"
           className="text-sm border border-ink/20 rounded-sm px-2 py-1.5 bg-white flex-1 max-w-xs"
+        />
+        <ArchivedToggle
+          checked={filters.archived === 'true'}
+          onChange={(checked) => onFilterChange({ ...filters, archived: checked ? 'true' : '' })}
         />
       </div>
 

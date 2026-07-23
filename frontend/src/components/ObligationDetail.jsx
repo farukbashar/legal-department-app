@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import ComplianceStatusBadge from './ComplianceStatusBadge.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
 
 const STATUS_OPTIONS = ['pending', 'in_progress', 'compliant', 'overdue', 'non_compliant'];
 
@@ -108,6 +109,17 @@ export default function ObligationDetail({ obligationId, onBack, onChanged }) {
             </dd>
           </div>
         </dl>
+
+        <ArchiveActions
+          isArchived={Boolean(o.archivedAt)}
+          onArchive={() => handleAction(() => api.archiveObligation(obligationId))}
+          onUnarchive={() => handleAction(() => api.unarchiveObligation(obligationId))}
+          onDelete={async () => {
+            await api.deleteObligation(obligationId);
+            onChanged?.();
+            onBack();
+          }}
+        />
       </div>
     </div>
   );

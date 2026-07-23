@@ -1,18 +1,27 @@
 const prisma = require('../../db/prisma');
 
+function archivedFilter(archived) {
+  if (archived === 'true') return { archivedAt: { not: null } };
+  if (archived === 'all') return {};
+  return { archivedAt: null };
+}
+
 // listResolutions doubles as the search endpoint: an optional `q` does a
 // keyword search across title, resolution number, and summary.
-async function listResolutions({ q } = {}) {
+async function listResolutions({ q, archived } = {}) {
   return prisma.boardResolution.findMany({
-    where: q
-      ? {
-          OR: [
-            { title: { contains: q, mode: 'insensitive' } },
-            { resolutionNumber: { contains: q, mode: 'insensitive' } },
-            { summary: { contains: q, mode: 'insensitive' } },
-          ],
-        }
-      : {},
+    where: {
+      ...(q
+        ? {
+            OR: [
+              { title: { contains: q, mode: 'insensitive' } },
+              { resolutionNumber: { contains: q, mode: 'insensitive' } },
+              { summary: { contains: q, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+      ...archivedFilter(archived),
+    },
     include: { createdBy: true },
     orderBy: { resolutionDate: 'desc' },
   });
@@ -73,6 +82,22 @@ async function updateResolution(id, data, userId) {
   return r;
 }
 
+async function archiveResolution(id, userId) {
+  const r = await prisma.boardResolution.update({ where: { id: Number(id) }, data: { archivedAt: new Date() } });
+  await prisma.auditLog.create({
+    data: { entityType: 'board_resolution', entityId: r.id, action: 'archived', performedBy: userId },
+  });
+  return r;
+}
+
+async function unarchiveResolution(id, userId) {
+  const r = await prisma.boardResolution.update({ where: { id: Number(id) }, data: { archivedAt: null } });
+  await prisma.auditLog.create({
+    data: { entityType: 'board_resolution', entityId: r.id, action: 'unarchived', performedBy: userId },
+  });
+  return r;
+}
+
 async function deleteResolution(id, userId) {
   await prisma.auditLog.create({
     data: {
@@ -128,6 +153,8 @@ module.exports = {
   getResolution,
   createResolution,
   updateResolution,
+  archiveResolution,
+  unarchiveResolution,
   deleteResolution,
   linkDocument,
   listLinkedDocuments,

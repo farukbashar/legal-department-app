@@ -10,6 +10,7 @@ export default function BoardResolutionsModule({ jumpToId, onJumpHandled }) {
   const [resolutions, setResolutions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     if (jumpToId) {
@@ -23,7 +24,10 @@ export default function BoardResolutionsModule({ jumpToId, onJumpHandled }) {
   const loadResolutions = async () => {
     setLoading(true);
     try {
-      const data = await api.listResolutions(q ? { q } : {});
+      const data = await api.listResolutions({
+        ...(q ? { q } : {}),
+        ...(showArchived ? { archived: 'true' } : {}),
+      });
       setResolutions(data);
     } catch (err) {
       console.error(err);
@@ -37,7 +41,7 @@ export default function BoardResolutionsModule({ jumpToId, onJumpHandled }) {
     const timeout = setTimeout(loadResolutions, 250); // light debounce on search typing
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, q]);
+  }, [view, q, showArchived]);
 
   return (
     <>
@@ -46,6 +50,8 @@ export default function BoardResolutionsModule({ jumpToId, onJumpHandled }) {
           resolutions={resolutions}
           q={q}
           onQChange={setQ}
+          showArchived={showArchived}
+          onShowArchivedChange={setShowArchived}
           onSelect={(id) => {
             setSelectedId(id);
             setView('detail');
@@ -66,7 +72,9 @@ export default function BoardResolutionsModule({ jumpToId, onJumpHandled }) {
         />
       )}
 
-      {view === 'detail' && <ResolutionDetail resolutionId={selectedId} onBack={() => setView('list')} />}
+      {view === 'detail' && (
+        <ResolutionDetail resolutionId={selectedId} onBack={() => setView('list')} onChanged={loadResolutions} />
+      )}
     </>
   );
 }

@@ -9,7 +9,7 @@ export default function KnowledgeBaseModule({ jumpToId, onJumpHandled }) {
   const [selectedId, setSelectedId] = useState(null);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ type: '', q: '' });
+  const [filters, setFilters] = useState({ type: '', q: '', archived: '' });
 
   useEffect(() => {
     if (jumpToId) {
@@ -26,6 +26,7 @@ export default function KnowledgeBaseModule({ jumpToId, onJumpHandled }) {
       const data = await api.listKnowledgeItems({
         ...(filters.type ? { type: filters.type } : {}),
         ...(filters.q ? { q: filters.q } : {}),
+        ...(filters.archived ? { archived: filters.archived } : {}),
       });
       setItems(data);
     } catch (err) {

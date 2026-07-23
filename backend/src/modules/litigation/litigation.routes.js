@@ -8,11 +8,11 @@ const { requireAuth, requireRole } = require('../../middleware/auth.middleware')
 
 router.use(requireAuth);
 
-// GET /api/litigation/cases?status=open&court=Federal High Court
+// GET /api/litigation/cases?status=open&court=Federal High Court&archived=false|true|all
 router.get('/cases', async (req, res) => {
   try {
-    const { status, court } = req.query;
-    const cases = await casesService.listCases({ status, court });
+    const { status, court, archived } = req.query;
+    const cases = await casesService.listCases({ status, court, archived });
     res.json(cases);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -49,8 +49,28 @@ router.put('/cases/:id', requireRole('admin', 'head_of_legal', 'counsel'), async
   }
 });
 
-// DELETE /api/litigation/cases/:id
-router.delete('/cases/:id', requireRole('admin', 'head_of_legal'), async (req, res) => {
+// POST /api/litigation/cases/:id/archive
+router.post('/cases/:id/archive', requireRole('admin', 'head_of_legal', 'counsel'), async (req, res) => {
+  try {
+    const c = await casesService.archiveCase(req.params.id, req.user.id);
+    res.json(c);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// POST /api/litigation/cases/:id/unarchive
+router.post('/cases/:id/unarchive', requireRole('admin', 'head_of_legal', 'counsel'), async (req, res) => {
+  try {
+    const c = await casesService.unarchiveCase(req.params.id, req.user.id);
+    res.json(c);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/litigation/cases/:id — permanent, admin-only
+router.delete('/cases/:id', requireRole('admin'), async (req, res) => {
   try {
     await casesService.deleteCase(req.params.id, req.user.id);
     res.status(204).send();

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import FileUploadField from './FileUploadField.jsx';
+import ArchiveActions from './ArchiveActions.jsx';
+import { exportReportPDF } from '../utils/pdf.js';
 
-export default function ResolutionDetail({ resolutionId, onBack }) {
+export default function ResolutionDetail({ resolutionId, onBack, onChanged }) {
   const [resolution, setResolution] = useState(null);
   const [docs, setDocs] = useState([]);
   const [error, setError] = useState('');
@@ -25,14 +27,41 @@ export default function ResolutionDetail({ resolutionId, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolutionId]);
 
-  const handleLink = async (fileName, fileUrl) => {
+  const handleAction = async (fn) => {
     setError('');
     try {
-      await api.linkResolutionDocument(resolutionId, { fileName, fileUrl });
+      await fn();
       await load();
+      onChanged?.();
     } catch (err) {
       setError(err.message);
     }
+  };
+
+  const handleLink = (fileName, fileUrl) =>
+    handleAction(() => api.linkResolutionDocument(resolutionId, { fileName, fileUrl }));
+
+  const handleExportPDF = () => {
+    exportReportPDF({
+      title: resolution.title,
+      subtitle: `Resolution ${resolution.resolutionNumber} — REA Legal Department`,
+      filename: `resolution-${resolution.resolutionNumber}`,
+      sections: [
+        {
+          heading: 'Details',
+          rows: [
+            ['Resolution number', resolution.resolutionNumber],
+            ['Date', new Date(resolution.resolutionDate).toLocaleDateString()],
+            ['Created by', resolution.createdBy?.fullName || '—'],
+          ],
+        },
+        ...(resolution.summary ? [{ heading: 'Summary', text: resolution.summary }] : []),
+        {
+          heading: 'Linked supporting documents',
+          rows: docs.length > 0 ? docs.map((d) => [d.fileName, d.fileUrl]) : [['None', '—']],
+        },
+      ],
+    });
   };
 
   if (!resolution) {
@@ -52,14 +81,35 @@ export default function ResolutionDetail({ resolutionId, onBack }) {
       )}
 
       <div className="bg-white border border-ink/15 rounded-sm p-6 mb-6">
-        <p className="text-xs font-mono uppercase tracking-widest text-brass mb-1">
-          Resolution · {resolution.resolutionNumber}
-        </p>
-        <h1 className="text-2xl font-serif font-semibold text-ink mb-2">{resolution.title}</h1>
-        <p className="text-xs text-ink-light/60 font-mono mb-3">
-          {new Date(resolution.resolutionDate).toLocaleDateString()}
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs font-mono uppercase tracking-widest text-brass mb-1">
+              Resolution · {resolution.resolutionNumber}
+            </p>
+            <h1 className="text-2xl font-serif font-semibold text-ink mb-2">{resolution.title}</h1>
+            <p className="text-xs text-ink-light/60 font-mono mb-3">
+              {new Date(resolution.resolutionDate).toLocaleDateString()}
+            </p>
+          </div>
+          <button
+            onClick={handleExportPDF}
+            className="text-xs font-mono uppercase tracking-wide text-ink-light/70 hover:text-ink border border-ink/20 rounded-sm px-3 py-1.5 whitespace-nowrap"
+          >
+            Export PDF
+          </button>
+        </div>
         {resolution.summary && <p className="text-sm text-ink-light">{resolution.summary}</p>}
+
+        <ArchiveActions
+          isArchived={Boolean(resolution.archivedAt)}
+          onArchive={() => handleAction(() => api.archiveResolution(resolutionId))}
+          onUnarchive={() => handleAction(() => api.unarchiveResolution(resolutionId))}
+          onDelete={async () => {
+            await api.deleteResolution(resolutionId);
+            onChanged?.();
+            onBack();
+          }}
+        />
       </div>
 
       <div className="bg-white border border-ink/15 rounded-sm p-6">
