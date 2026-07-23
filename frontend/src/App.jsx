@@ -108,12 +108,14 @@ export default function App() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
-        <img
-          src="/rea-logo.png"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none select-none absolute -right-40 -bottom-40 w-[900px] h-[900px] object-contain opacity-[0.04] z-0"
-        />
+        <div className="absolute inset-0 flex items-center justify-center z-0">
+          <img
+            src="/rea-logo.png"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none select-none w-[620px] h-[620px] object-contain opacity-[0.05]"
+          />
+        </div>
 
         <header className="h-14 shrink-0 bg-white border-b border-ink/[0.06] flex items-center px-8 relative z-10">
           <p className="text-sm font-medium text-ink-light">{activeModule?.label}</p>

@@ -24,12 +24,14 @@ export default function Login({ onLoggedIn }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-paper relative overflow-hidden">
-      <img
-        src="/rea-logo.png"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] object-contain opacity-[0.05] z-0"
-      />
+      <div className="absolute inset-0 flex items-center justify-center z-0">
+        <img
+          src="/rea-logo.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none w-[780px] h-[780px] object-contain opacity-[0.06]"
+        />
+      </div>
 
       <form onSubmit={handleSubmit} className="relative z-10 bg-white border border-ink/15 rounded-sm p-8 w-full max-w-sm">
         <img src="/rea-logo.png" alt="REA" className="w-14 h-14 object-contain mb-4" />
