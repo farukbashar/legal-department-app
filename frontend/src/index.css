@@ -3,10 +3,54 @@
 @tailwind utilities;
 
 body {
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
-  color: #1E2A3C;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every "card" container across the app uses this exact combination of
+   utility classes — adding the shadow + smooth transition here upgrades
+   every card in every module at once, no per-file edits needed. */
+.bg-white.border-ink\/15 {
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 2px 8px -2px rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.06) !important;
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+
+/* Rows that are clickable get a little lift on hover instead of a flat tint */
+tr.cursor-pointer:hover {
+  box-shadow: inset 0 0 0 9999px rgba(99, 102, 241, 0.04);
 }
 
 .input {
-  @apply w-full text-sm border border-ink/20 rounded-sm px-3 py-2 bg-white focus:outline-none focus:border-brass;
+  @apply w-full text-sm border border-ink/15 rounded-sm px-3 py-2 bg-white transition-shadow duration-150;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+}
+.input:focus {
+  outline: none;
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+/* Buttons: give the solid "ink" (primary) buttons a touch of depth and a
+   hover lift, and soften the bordered (secondary) buttons to match. */
+button.bg-ink {
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.15);
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+button.bg-ink:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px 0 rgba(15, 23, 42, 0.1), 0 6px 16px -2px rgba(15, 23, 42, 0.2);
+}
+button.border-ink\/20 {
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+/* Table headers: slightly punchier separation from rows */
+thead tr {
+  border-bottom-width: 1px;
+}
+
+::selection {
+  background: rgba(99, 102, 241, 0.25);
 }

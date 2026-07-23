@@ -23,8 +23,16 @@ export default function Login({ onLoggedIn }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper">
-      <form onSubmit={handleSubmit} className="bg-white border border-ink/15 rounded-sm p-8 w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-paper relative overflow-hidden">
+      <img
+        src="/rea-logo.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] object-contain opacity-[0.05] z-0"
+      />
+
+      <form onSubmit={handleSubmit} className="relative z-10 bg-white border border-ink/15 rounded-sm p-8 w-full max-w-sm">
+        <img src="/rea-logo.png" alt="REA" className="w-14 h-14 object-contain mb-4" />
         <p className="text-xs font-mono uppercase tracking-widest text-brass mb-1">REA · Legal Department</p>
         <h1 className="text-2xl font-serif font-semibold text-ink mb-6">Sign in</h1>
 
